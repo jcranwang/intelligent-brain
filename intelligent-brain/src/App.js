@@ -36,7 +36,8 @@ class App extends Component {
     super();
     this.state = {
       input: "",
-      imageURL: ""
+      imageURL: "",
+      box: {},
     };
   }
 
@@ -44,14 +45,33 @@ class App extends Component {
     this.setState({ input: event.target.value });
   };
 
+  calculateFaceBox = data => {
+    const clarifaiBox =
+      data.rawData.outputs[0].data.regions[0].region_info.bounding_box;
+    const targetPic = document.getElementById("imageTarget");
+    const picWidth = Number(targetPic.width);
+    const picHeight = Number(targetPic.height);
+    return {
+      leftCol: clarifaiBox.left_col * picWidth,
+      topRow: clarifaiBox.top_row * picHeight,
+      rightCol: picWidth - clarifaiBox.right_col * picWidth,
+      bottomRow: picHeight - clarifaiBox.bottom_row * picHeight
+    };
+  };
+
+  showFaceBox = box => {
+    this.setState({ box: box });
+  };
+
   onDetectChange = event => {
     this.setState({ imageURL: this.state.input });
-    app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input).then(
-      function(response) {
-        console.log(response.rawData.outputs[0].data.regions[0].region_info.bounding_box);
-      },
-      function(err) {}
-    );
+    app.models
+      .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+      .then(response =>
+        this.showFaceBox(this.calculateFaceBox(response)).catch(err =>
+          console.log(err)
+        )
+      );
   };
 
   render() {
@@ -65,7 +85,7 @@ class App extends Component {
           onInputChange={this.onInputChange}
           onDetectChange={this.onDetectChange}
         />
-        <PictureArea imageURL={this.state.imageURL} />
+        <PictureArea box={this.state.box} imageURL={this.state.imageURL} />
       </div>
     );
   }
