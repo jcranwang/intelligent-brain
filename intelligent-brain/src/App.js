@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import Clarifai from "clarifai";
+import Particles from "react-particles-js";
 import Navigation from "./components/Navigation/Navigation";
 import Logo from "./components/Logo/Logo";
 import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
 import Rank from "./components/Rank/Rank";
 import PictureArea from "./components/PictureArea/PictureArea";
-import Particles from "react-particles-js";
+import SignIn from "./components/SignIn/SignIn";
+import Register from "./components/Register/Register";
 import "./App.css";
 
 const app = new Clarifai.App({
@@ -38,11 +40,22 @@ class App extends Component {
       input: "",
       imageURL: "",
       box: {},
+      route: "signin",
+      isSignIn: false
     };
   }
 
   onInputChange = event => {
     this.setState({ input: event.target.value });
+  };
+
+  onRouteChange = route => {
+    if (route === "home") {
+      this.setState({isSignIn: true});
+    } else if (route === "signin") {
+      this.setState({isSignIn: false});
+    }
+    this.setState({ route: route });
   };
 
   calculateFaceBox = data => {
@@ -75,17 +88,26 @@ class App extends Component {
   };
 
   render() {
+    const { box, imageURL, route, isSignIn } = this.state;
     return (
       <div className="App">
         <Particles className="particles" params={particleParams} />
-        <Navigation />
+        <Navigation onRouteChange={this.onRouteChange} isSignIn={isSignIn} />
         <Logo />
-        <Rank />
-        <ImageLinkForm
-          onInputChange={this.onInputChange}
-          onDetectChange={this.onDetectChange}
-        />
-        <PictureArea box={this.state.box} imageURL={this.state.imageURL} />
+        {route === "home" ? (
+          <div>
+            <Rank />
+            <ImageLinkForm
+              onInputChange={this.onInputChange}
+              onDetectChange={this.onDetectChange}
+            />
+            <PictureArea box={box} imageURL={imageURL} />
+          </div>
+        ) : route === "register" ? (
+          <Register onRouteChange={this.onRouteChange} />
+        ) : (
+          <SignIn onRouteChange={this.onRouteChange} />
+        )}
       </div>
     );
   }
