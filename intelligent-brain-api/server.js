@@ -3,9 +3,9 @@ const bodyParser = require("body-parser");
 
 const app = express();
 const dataBase = {
-  user: [
+  users: [
     {
-      id: "josh123",
+      id: "1",
       name: "Josh",
       email: "josh@gmail.com",
       password: "worldPeace",
@@ -13,7 +13,7 @@ const dataBase = {
       joinedDate: new Date()
     },
     {
-      id: "james123",
+      id: "2",
       name: "James",
       email: "James@gmail.com",
       password: "lakers",
@@ -26,33 +26,63 @@ const dataBase = {
 app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
-  res.json(dataBase.user);
+  res.json(dataBase.users);
 });
 
 app.post("/signin", (req, res) => {
   const { email, password } = req.body;
-  for (let index = 0; index < dataBase.user.length; index++) {
-    if (
-      dataBase.user[index].email === email &&
-      dataBase.user[index].password === password
-    ) {
-        res.json("Signin Successfully")
+  let userFound = false;
+  dataBase.users.forEach(user => {
+    if (user.email === email && user.password === password) {
+      userFound = true;
+      return res.json("Sign in Successfully");
     }
+  });
+  if (!userFound) {
+    res.status(400).send("User not found");
   }
-  res.status(400).send("Wrong email or password");
 });
 
 app.post("/register", (req, res) => {
-    const {name, email, password} = req.body;
-    dataBase.user.push({
-        id: name + "123",
-        name: name,
-        email: email,
-        password: password,
-        entries: 0,
-        joinedDate: new Date()
-    });
-    res.json(dataBase.user[dataBase.user.length - 1]);
+  const { name, email, password } = req.body;
+  dataBase.users.push({
+    id: name + "123",
+    name: name,
+    email: email,
+    password: password,
+    entries: 0,
+    joinedDate: new Date()
+  });
+  res.json(dataBase.users[dataBase.users.length - 1]);
+});
+
+app.post("/profile/:id", (req, res) => {
+  const { id } = req.params;
+  let userFound = false;
+  dataBase.users.forEach(user => {
+    if (user.id === id) {
+      userFound = true;
+      return res.json(user);
+    }
+  });
+  if (!userFound) {
+    res.status(400).send("User not found");
+  }
+});
+
+app.put("/image", (req, res) => {
+  const {id} = req.body;
+  let userFound = false;
+  dataBase.users.forEach(user => {
+    if (user.id === id) {
+      userFound = true;
+      user.entries++;
+      return res.json(user.entries);
+    }
+  });
+  if (!userFound) {
+    res.status(400).send("User Not Found");
+  }
 });
 
 app.listen(3000, () => {
