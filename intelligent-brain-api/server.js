@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const app = express();
 const dataBase = {
@@ -23,6 +24,7 @@ const dataBase = {
   ]
 };
 
+app.use(cors());
 app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
@@ -39,7 +41,7 @@ app.post("/signin", (req, res) => {
     }
   });
   if (!userFound) {
-    res.status(400).send("User not found");
+    res.status(400).json("User not found");
   }
 });
 
@@ -66,7 +68,7 @@ app.post("/profile/:id", (req, res) => {
     }
   });
   if (!userFound) {
-    res.status(400).send("User not found");
+    res.status(400).json("User not found");
   }
 });
 
@@ -81,10 +83,10 @@ app.put("/image", (req, res) => {
     }
   });
   if (!userFound) {
-    res.status(400).send("User Not Found");
+    res.status(400).json("User Not Found");
   }
 });
 
-app.listen(3000, () => {
+app.listen(3001, () => {
   console.log("Start server...");
 });
