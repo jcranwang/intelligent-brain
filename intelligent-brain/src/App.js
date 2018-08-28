@@ -41,9 +41,28 @@ class App extends Component {
       imageURL: "",
       box: {},
       route: "signin",
-      isSignIn: false
+      isSignIn: false,
+      userProfile: {
+        id: "",
+        name: "",
+        email: "",
+        entries: 0,
+        joinedDate: ""
+      }
     };
   }
+
+  receiveUserProfile = user => {
+    this.setState({
+      userProfile: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        entries: user.entries,
+        joinedDate: user.joinedDate
+      }
+    });
+  };
 
   onInputChange = event => {
     this.setState({ input: event.target.value });
@@ -51,9 +70,9 @@ class App extends Component {
 
   onRouteChange = route => {
     if (route === "home") {
-      this.setState({isSignIn: true});
+      this.setState({ isSignIn: true });
     } else if (route === "signin") {
-      this.setState({isSignIn: false});
+      this.setState({ isSignIn: false });
     }
     this.setState({ route: route });
   };
@@ -104,7 +123,10 @@ class App extends Component {
             <PictureArea box={box} imageURL={imageURL} />
           </div>
         ) : route === "register" ? (
-          <Register onRouteChange={this.onRouteChange} />
+          <Register
+            onRouteChange={this.onRouteChange}
+            receiveUserProfile={this.receiveUserProfile}
+          />
         ) : (
           <SignIn onRouteChange={this.onRouteChange} />
         )}
