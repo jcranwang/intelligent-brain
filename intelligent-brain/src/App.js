@@ -99,15 +99,29 @@ class App extends Component {
     this.setState({ imageURL: this.state.input });
     app.models
       .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
-      .then(response =>
-        this.showFaceBox(this.calculateFaceBox(response)).catch(err =>
-          console.log(err)
-        )
-      );
+      .then(response => {
+        if (response) {
+          fetch("http://localhost:3001/image", {
+            method: "put",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: this.state.userProfile.id
+            })
+          })
+            .then(response => response.json())
+            .then(entryCount => {
+              this.setState(
+                Object.assign(this.state.userProfile, { entries: entryCount })
+              );
+            });
+          this.showFaceBox(this.calculateFaceBox(response));
+        }
+      })
+      .catch(err => console.log(err));
   };
 
   render() {
-    const { box, imageURL, route, isSignIn } = this.state;
+    const { box, imageURL, route, isSignIn, userProfile } = this.state;
     return (
       <div className="App">
         <Particles className="particles" params={particleParams} />
@@ -115,7 +129,10 @@ class App extends Component {
         <Logo />
         {route === "home" ? (
           <div>
-            <Rank />
+            <Rank
+              userName={userProfile.name}
+              userEntries={userProfile.entries}
+            />
             <ImageLinkForm
               onInputChange={this.onInputChange}
               onDetectChange={this.onDetectChange}
@@ -128,7 +145,10 @@ class App extends Component {
             receiveUserProfile={this.receiveUserProfile}
           />
         ) : (
-          <SignIn onRouteChange={this.onRouteChange} />
+          <SignIn
+            onRouteChange={this.onRouteChange}
+            receiveUserProfile={this.receiveUserProfile}
+          />
         )}
       </div>
     );

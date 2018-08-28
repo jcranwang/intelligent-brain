@@ -37,7 +37,7 @@ app.post("/signin", (req, res) => {
   dataBase.users.forEach(user => {
     if (user.email === email && user.password === password) {
       userFound = true;
-      return res.json("Sign in Successfully");
+      return res.json(user);
     }
   });
   if (!userFound) {
