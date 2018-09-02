@@ -3,16 +3,15 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const knex = require("knex");
 
-const postgre = knex({
-  client: 'pg',
+const db = knex({
+  client: "pg",
   connection: {
-    host: '127.0.0.1',
-    user: 'chaoran',
-    database: 'intelligent-brain'
+    host: "127.0.0.1",
+    user: "chaoranwang",
+    password: "",
+    database: "intelligent-brain"
   }
 });
-
-console.log(postgre.select("*").from("users"));
 
 const app = express();
 const dataBase = {
@@ -59,15 +58,17 @@ app.post("/signin", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { name, email, password } = req.body;
-  dataBase.users.push({
-    id: name + "123",
-    name: name,
-    email: email,
-    password: password,
-    entries: 0,
-    joinedDate: new Date()
-  });
-  res.json(dataBase.users[dataBase.users.length - 1]);
+  db("users")
+    .returning("*")
+    .insert({
+      email: email,
+      name: name,
+      joined: new Date()
+    })
+    .then(user => {
+      res.json(user[0]);
+    })
+    .catch(err => res.status(400).json("Cannot register"));
 });
 
 app.post("/profile/:id", (req, res) => {
@@ -85,7 +86,7 @@ app.post("/profile/:id", (req, res) => {
 });
 
 app.put("/image", (req, res) => {
-  const {id} = req.body;
+  const { id } = req.body;
   let userFound = false;
   dataBase.users.forEach(user => {
     if (user.id === id) {
