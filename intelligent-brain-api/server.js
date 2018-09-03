@@ -71,18 +71,19 @@ app.post("/register", (req, res) => {
     .catch(err => res.status(400).json("Cannot register"));
 });
 
-app.post("/profile/:id", (req, res) => {
+app.get("/profile/:id", (req, res) => {
   const { id } = req.params;
-  let userFound = false;
-  dataBase.users.forEach(user => {
-    if (user.id === id) {
-      userFound = true;
-      return res.json(user);
-    }
-  });
-  if (!userFound) {
-    res.status(400).json("User not found");
-  }
+  db.select("*")
+    .from("users")
+    .where({ id })
+    .then(users => {
+      if (users.length) {
+        res.json(users[0]);
+      } else {
+        res.status(400).json("User not found");
+      }
+    })
+    .catch(err => res.status(400).json("Error getting user"));
 });
 
 app.put("/image", (req, res) => {
