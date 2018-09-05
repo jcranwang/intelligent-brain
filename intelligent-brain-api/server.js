@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const knex = require("knex");
+const bcrypt = require("bcrypt-nodejs");
 
 const db = knex({
   client: "pg",
@@ -14,27 +15,6 @@ const db = knex({
 });
 
 const app = express();
-const dataBase = {
-  users: [
-    {
-      id: "1",
-      name: "Josh",
-      email: "josh@gmail.com",
-      password: "worldPeace",
-      entries: 0,
-      joinedDate: new Date()
-    },
-    {
-      id: "2",
-      name: "James",
-      email: "James@gmail.com",
-      password: "lakers",
-      entries: 0,
-      joinedDate: new Date()
-    }
-  ]
-};
-
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -43,32 +23,53 @@ app.get("/", (req, res) => {
 });
 
 app.post("/signin", (req, res) => {
-  const { email, password } = req.body;
-  let userFound = false;
-  dataBase.users.forEach(user => {
-    if (user.email === email && user.password === password) {
-      userFound = true;
-      return res.json(user);
-    }
-  });
-  if (!userFound) {
-    res.status(400).json("User not found");
-  }
+  db.select("email", "hash")
+    .from("login")
+    .where("email", "=", req.body.email)
+    .then(data => {
+      const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+      if (isValid) {
+        return db
+          .select("*")
+          .from("users")
+          .where("email", "=", req.body.email)
+          .then(user => {
+            res.json(user[0]);
+          })
+          .catch(err => res.status(400).json("Error getting user."));
+      } else {
+        res.status(400).json("wrong credentials");
+      }
+    })
+    .catch(err => res.status(400).json("Wrong credentials"));
 });
 
 app.post("/register", (req, res) => {
   const { name, email, password } = req.body;
-  db("users")
-    .returning("*")
-    .insert({
-      email: email,
-      name: name,
-      joined: new Date()
-    })
-    .then(user => {
-      res.json(user[0]);
-    })
-    .catch(err => res.status(400).json("Cannot register"));
+  const hash = bcrypt.hashSync(password);
+  db.transaction(trx => {
+    trx
+      .insert({
+        hash: hash,
+        email: email
+      })
+      .into("login")
+      .returning("email")
+      .then(loginEmail => {
+        return trx("users")
+          .returning("*")
+          .insert({
+            email: loginEmail[0],
+            name: name,
+            joined: new Date()
+          })
+          .then(user => {
+            res.json(user[0]);
+          });
+      })
+      .then(trx.commit)
+      .catch(trx.rollback);
+  }).catch(err => res.status(400).json("Cannot register"));
 });
 
 app.get("/profile/:id", (req, res) => {
