@@ -72,7 +72,19 @@ class App extends Component {
     if (route === "home") {
       this.setState({ isSignIn: true });
     } else if (route === "signin") {
-      this.setState({ isSignIn: false });
+      this.setState({
+        isSignIn: false,
+        input: "",
+        imageURL: "",
+        box: {},
+        userProfile: {
+          id: "",
+          name: "",
+          email: "",
+          entries: 0,
+          joinedDate: ""
+        }
+      });
     }
     this.setState({ route: route });
   };
