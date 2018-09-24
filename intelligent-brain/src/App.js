@@ -33,23 +33,25 @@ const particleParams = {
   }
 };
 
+const initialState = {
+  input: "",
+  imageURL: "",
+  box: {},
+  route: "signin",
+  isSignIn: false,
+  userProfile: {
+    id: "",
+    name: "",
+    email: "",
+    entries: 0,
+    joinedDate: ""
+  }
+};
+
 class App extends Component {
   constructor() {
     super();
-    this.state = {
-      input: "",
-      imageURL: "",
-      box: {},
-      route: "signin",
-      isSignIn: false,
-      userProfile: {
-        id: "",
-        name: "",
-        email: "",
-        entries: 0,
-        joinedDate: ""
-      }
-    };
+    this.state = initialState;
   }
 
   receiveUserProfile = user => {
@@ -72,19 +74,7 @@ class App extends Component {
     if (route === "home") {
       this.setState({ isSignIn: true });
     } else if (route === "signin") {
-      this.setState({
-        isSignIn: false,
-        input: "",
-        imageURL: "",
-        box: {},
-        userProfile: {
-          id: "",
-          name: "",
-          email: "",
-          entries: 0,
-          joinedDate: ""
-        }
-      });
+      this.setState(initialState);
     }
     this.setState({ route: route });
   };
@@ -125,7 +115,8 @@ class App extends Component {
               this.setState(
                 Object.assign(this.state.userProfile, { entries: entryCount })
               );
-            });
+            })
+            .catch(console.log);
           this.showFaceBox(this.calculateFaceBox(response));
         }
       })
